@@ -130,6 +130,11 @@ def visualizar_agendas():
     st.subheader("Visualizar Todas as Agendas")
     
     agendas = carregar_agendas()
+    usuarios = carregar_usuarios()
+    
+    # Criar um dicionário para mapear utilizadores para suas respectivas cores
+    cor_usuarios = {usuario['Utilizador']: usuario['Cor'] for usuario in usuarios}
+    
     if not agendas.empty:
         dias_da_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
         horas = [f"{hora:02d}:00" for hora in range(8, 20)]
@@ -140,14 +145,16 @@ def visualizar_agendas():
             hora_inicio = row["Hora_Inicio"]
             hora_fim = row["Hora_Fim"]
             tarefa = f'{row["Utilizador"]}: {row["Tarefa"]}'
+            cor = cor_usuarios.get(row["Utilizador"], "#FFFFFF")  # Pega a cor do utilizador ou branco como padrão
             if dia in tabela.columns:
                 if hora_inicio in tabela.index:
                     start_index = tabela.index.get_loc(hora_inicio)
                     end_index = tabela.index.get_loc(hora_fim)
                     for idx in range(start_index, end_index + 1):
-                        tabela.at[tabela.index[idx], dia] = tarefa
+                        tabela.at[tabela.index[idx], dia] = f'<span style="color:{cor};">{tarefa}</span>'
 
-        st.table(tabela)
+        # Exibir tabela com estilo
+        st.markdown(tabela.to_html(escape=False), unsafe_allow_html=True)
     else:
         st.info("Nenhuma agenda foi criada ainda.")
 
@@ -155,7 +162,7 @@ def visualizar_agendas():
 def gerir():
     opcao = st.sidebar.selectbox(
         "Escolha uma opção:",
-        ["Criar Nova Agenda", "Selecionar Agenda Existente", "Visualizar Agendas"]
+        ["Criar Nova Agenda", "Selecionar Agenda", "Visualizar Agendas"]
     )
     
     if opcao == "Criar Nova Agenda":
@@ -166,7 +173,3 @@ def gerir():
             gerir_agenda(utilizador)
     elif opcao == "Visualizar Agendas":
         visualizar_agendas()
-
-# Executa a função principal
-if __name__ == "__main__":
-    gerir()
