@@ -8,7 +8,7 @@ def main():
 
     menu = st.sidebar.selectbox(
         "Escolha uma opção:",
-        ["Menu Principal", "Gerir Agenda"]
+        ["Menu Principal", "Agendas"]
     )
     
     if menu == "Menu Principal":
