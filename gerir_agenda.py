@@ -130,24 +130,36 @@ def visualizar_agendas():
     st.subheader("Visualizar Todas as Agendas")
     
     agendas = carregar_agendas()
+    usuarios = carregar_usuarios()
+    
     if not agendas.empty:
         dias_da_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
         horas = [f"{hora:02d}:00" for hora in range(8, 20)]
         tabela = pd.DataFrame(index=horas, columns=dias_da_semana)
+
+        # Cria um dicionário para mapear utilizadores para suas cores
+        cor_usuarios = {usuario['Utilizador']: usuario['Cor'] for usuario in usuarios}
 
         for _, row in agendas.iterrows():
             dia = row["Dia"]
             hora_inicio = row["Hora_Inicio"]
             hora_fim = row["Hora_Fim"]
             tarefa = f'{row["Utilizador"]}: {row["Tarefa"]}'
+            cor = cor_usuarios.get(row["Utilizador"], "#FFFFFF")  # Pega a cor do utilizador ou branco como padrão
             if dia in tabela.columns:
                 if hora_inicio in tabela.index:
                     start_index = tabela.index.get_loc(hora_inicio)
                     end_index = tabela.index.get_loc(hora_fim)
                     for idx in range(start_index, end_index + 1):
-                        tabela.at[tabela.index[idx], dia] = tarefa
+                        # Se a célula já contém uma tarefa, adiciona a nova tarefa com uma quebra de linha
+                        existing_content = tabela.at[tabela.index[idx], dia]
+                        if pd.notna(existing_content):
+                            tabela.at[tabela.index[idx], dia] = existing_content + f"<br><span style='color:{cor};'>{tarefa}</span>"
+                        else:
+                            tabela.at[tabela.index[idx], dia] = f"<span style='color:{cor};'>{tarefa}</span>"
 
-        st.table(tabela)
+        # Exibir tabela com estilo
+        st.markdown(tabela.to_html(escape=False, render_links=True), unsafe_allow_html=True)
     else:
         st.info("Nenhuma agenda foi criada ainda.")
 
