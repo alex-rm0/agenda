@@ -107,6 +107,9 @@ def gerir_agenda(utilizador):
     # Exibir e permitir remoção de tarefas
     st.subheader("Remover Tarefas")
     agendas_df = carregar_agendas()
+
+    st.write("Colunas disponíveis:", agendas_df.columns)
+
     tarefas = agendas_df[agendas_df["Utilizador"] == utilizador].to_dict('records')
 
     if tarefas:
