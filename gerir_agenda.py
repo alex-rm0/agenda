@@ -98,7 +98,8 @@ def gerir_agenda(utilizador):
                     "Hora_Fim": hora_fim,
                     "Tarefa": tarefa
                 }
-                agendas = agendas.append(nova_tarefa, ignore_index=True)
+                # Utilizar pd.concat em vez de append
+                agendas = pd.concat([agendas, pd.DataFrame([nova_tarefa])], ignore_index=True)
                 salvar_agendas(agendas)
                 st.success(f"Tarefa '{tarefa}' adicionada para {dia} das {hora_inicio} às {hora_fim}.")
         else:
@@ -163,3 +164,7 @@ def gerir():
             gerir_agenda(utilizador)
     elif opcao == "Visualizar Agendas":
         visualizar_agendas()
+
+# Executa a função principal
+if __name__ == "__main__":
+    gerir()
