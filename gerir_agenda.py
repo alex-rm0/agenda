@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import os
 
 # Função para carregar usuários
@@ -32,9 +33,9 @@ def carregar_agendas():
                         "Hora_Fim": parts[3],
                         "Tarefa": parts[4]
                     })
-        return agendas
+        return pd.DataFrame(agendas)
     else:
-        return []
+        return pd.DataFrame(columns=["Utilizador", "Dia", "Hora_Inicio", "Hora_Fim", "Tarefa"])
 
 # Função para salvar usuários
 def salvar_usuarios(usuarios):
@@ -144,11 +145,42 @@ def gerir_agenda(utilizador):
                     salvar_agendas(agendas)
                     st.success("Tarefa removida com sucesso!")
 
+# Função para visualizar todas as agendas
+def visualizar_agendas():
+    st.subheader("Visualizar Todas as Agendas")
+    
+    agendas = carregar_agendas()
+    if not agendas.empty:
+        dias_da_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+        horas = [f"{hora:02d}:00" for hora in range(8, 20)]
+        
+        tabela = pd.DataFrame(index=horas, columns=dias_da_semana)
+        tabela.index.name = 'Hora'
+        
+        for _, row in agendas.iterrows():
+            hora_inicio = row["Hora_Inicio"]
+            hora_fim = row["Hora_Fim"]
+            dia = row["Dia"]
+            tarefa = f'{row["Utilizador"]}: {row["Tarefa"]}'
+            
+            if hora_inicio in tabela.index:
+                tabela.at[hora_inicio, dia] = tarefa
+            
+            if hora_fim in tabela.index:
+                end_index = tabela.index.get_loc(hora_fim)
+                start_index = tabela.index.get_loc(hora_inicio)
+                for idx in range(start_index, end_index + 1):
+                    tabela.at[tabela.index[idx], dia] = tarefa
+
+        st.table(tabela)
+    else:
+        st.info("Nenhuma agenda foi criada ainda.")
+
 # Função principal para gerenciamento
 def gerir():
     opcao = st.sidebar.selectbox(
         "Escolha uma opção:",
-        ["Criar Nova Agenda", "Selecionar Agenda Existente"]
+        ["Criar Nova Agenda", "Selecionar Agenda Existente", "Visualizar Agendas"]
     )
     
     if opcao == "Criar Nova Agenda":
@@ -157,3 +189,5 @@ def gerir():
         utilizador = selecionar_agenda()
         if utilizador:
             gerir_agenda(utilizador)
+    elif opcao == "Visualizar Agendas":
+        visualizar_agendas()
