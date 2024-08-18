@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import gerir_agenda
-import visualizar_agendas
     
 def main():
     st.title("Calendário d'Os Cinco")
@@ -9,15 +8,13 @@ def main():
 
     menu = st.sidebar.selectbox(
         "Escolha uma opção:",
-        ["Menu Principal", "Gerir Agenda", "Visualizar Agendas"]
+        ["Menu Principal", "Gerir Agenda"]
     )
     
     if menu == "Menu Principal":
         st.subheader("Bem-vindo ao Calendário d'Os Cinco")
     elif menu == "Gerir Agenda":
         gerir_agenda.gerir()
-    elif menu == "Visualizar Agendas":
-        visualizar_agendas.show()
 
 if __name__ == "__main__":
     main()
