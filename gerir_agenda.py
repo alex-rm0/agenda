@@ -106,8 +106,10 @@ def gerir_agenda(utilizador):
             st.error("Por favor, preencha todos os campos.")
 
     # Exibir e permitir remoção de tarefas
-    st.subheader("Gerenciar Tarefas")
-    tarefas = [agenda for agenda in carregar_agendas() if agenda["Utilizador"] == utilizador]
+    st.subheader("Remover Tarefas")
+    agendas_df = carregar_agendas()
+    tarefas = agendas_df[agendas_df["Utilizador"] == utilizador].to_dict('records')
+
     if tarefas:
         tarefa_remover = st.selectbox("Selecione uma tarefa para remover:", [f"{t['Dia']} {t['Hora_Inicio']} - {t['Hora_Fim']} - {t['Tarefa']}" for t in tarefas])
         if tarefa_remover:
