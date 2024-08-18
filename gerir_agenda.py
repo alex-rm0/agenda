@@ -137,7 +137,8 @@ def gerir_agenda(utilizador):
                     else:
                         st.error("Por favor, preencha todos os campos.")
                 
-                if st.button("Remover Tarefa"):
+                # Usar st.form_submit_button() para remover a tarefa
+                if st.form_submit_button("Remover Tarefa"):
                     agendas = carregar_agendas()
                     agendas = [t for t in agendas if not (t['Dia'] == tarefa_selecionada['Dia'] and t['Hora_Inicio'] == tarefa_selecionada['Hora_Inicio'] and t['Hora_Fim'] == tarefa_selecionada['Hora_Fim'] and t['Tarefa'] == tarefa_selecionada['Tarefa'] and t['Utilizador'] == utilizador)]
                     salvar_agendas(agendas)
