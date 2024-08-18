@@ -1,39 +1,48 @@
 import streamlit as st
 import pandas as pd
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 
 # Função para criar a tabela de horários
 def criar_tabela_horarios():
     dias_da_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
     horarios = [f"{hora:02d}:00" for hora in range(8, 20)]  # Horário das 08:00 às 19:00
 
+    # Cria um DataFrame vazio
     tabela = pd.DataFrame(index=horarios, columns=dias_da_semana)
     return tabela
 
-# Função para selecionar horários
-def selecionar_horarios(tabela):
-    for dia in tabela.columns:
-        st.write(f"### {dia}")
-        for hora in tabela.index:
-            if st.checkbox(f"{hora} - {dia}", key=f"{hora}-{dia}"):
-                tarefa = st.text_input(f"Tarefa para {hora} - {dia}", key=f"input-{hora}-{dia}")
-                tabela.loc[hora, dia] = tarefa
-
 # Função principal
 def main():
-    st.title("Aplicação Agenda - Calendário Os Cinco")
-    st.image("foto_benedita.png", use_column_width=True)
-
-    st.write("Selecione os blocos de horários em que deseja adicionar tarefas:")
+    st.title("Agenda Semanal Interativa - Estilo Calendário")
 
     # Criar e exibir a tabela de horários
     tabela_horarios = criar_tabela_horarios()
 
-    # Selecionar horários e adicionar tarefas
-    selecionar_horarios(tabela_horarios)
+    # Configurações do grid
+    gb = GridOptionsBuilder.from_dataframe(tabela_horarios)
+    gb.configure_default_column(editable=True)  # Permite edição das células
+    gb.configure_grid_options(domLayout='normal')
 
-    # Mostrar a tabela final com as tarefas
+    # Cria o grid interativo
+    grid_response = AgGrid(
+        tabela_horarios,
+        gridOptions=gb.build(),
+        editable=True,  # Permite editar a célula diretamente no grid
+        theme='blue',  # Estilo do grid
+        fit_columns_on_grid_load=True,
+        allow_unsafe_jscode=True,
+        enable_enterprise_modules=True,
+    )
+
+    # Obtém a tabela editada
+    tabela_editada = grid_response['data']
     st.write("### Agenda Atualizada:")
-    st.dataframe(tabela_horarios.fillna(""))
+    st.dataframe(tabela_editada)
+
+    # Salvando a tabela editada em um CSV (opcional)
+    if st.button("Salvar Agenda"):
+        tabela_editada.to_csv("agenda_semanal.csv", index=True)
+        st.success("Agenda salva com sucesso!")
 
 if __name__ == "__main__":
     main()
