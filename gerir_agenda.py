@@ -37,17 +37,11 @@ def carregar_agendas():
     else:
         return pd.DataFrame(columns=["Utilizador", "Dia", "Hora_Inicio", "Hora_Fim", "Tarefa"])
 
-# Função para salvar usuários
-def salvar_usuarios(usuarios):
-    with open("users.txt", "w") as file:
-        for usuario in usuarios:
-            file.write(f"{usuario['Utilizador']}|{usuario['Cor']}\n")
-
 # Função para salvar agendas
 def salvar_agendas(agendas):
     with open("agendas.txt", "w") as file:
-        for agenda in agendas:
-            file.write(f"{agenda['Utilizador']}|{agenda['Dia']}|{agenda['Hora_Inicio']}|{agenda['Hora_Fim']}|{agenda['Tarefa']}\n")
+        for _, row in agendas.iterrows():
+            file.write(f"{row['Utilizador']}|{row['Dia']}|{row['Hora_Inicio']}|{row['Hora_Fim']}|{row['Tarefa']}\n")
 
 # Função para criar uma nova agenda
 def criar_agenda():
@@ -98,7 +92,7 @@ def gerir_agenda(utilizador):
                     "Hora_Fim": hora_fim,
                     "Tarefa": tarefa
                 }
-                agendas.append(nova_tarefa)
+                agendas = agendas.append(nova_tarefa, ignore_index=True)
                 salvar_agendas(agendas)
                 st.success(f"Tarefa '{tarefa}' adicionada para {dia} das {hora_inicio} às {hora_fim}.")
         else:
@@ -125,14 +119,18 @@ def gerir_agenda(utilizador):
                             st.error("A nova hora de início deve ser antes da nova hora de fim.")
                         else:
                             agendas = carregar_agendas()
-                            agendas = [t for t in agendas if not (t['Dia'] == tarefa_selecionada['Dia'] and t['Hora_Inicio'] == tarefa_selecionada['Hora_Inicio'] and t['Hora_Fim'] == tarefa_selecionada['Hora_Fim'] and t['Tarefa'] == tarefa_selecionada['Tarefa'] and t['Utilizador'] == utilizador)]
-                            agendas.append({
+                            agendas = agendas[~((agendas['Dia'] == tarefa_selecionada['Dia']) &
+                                                (agendas['Hora_Inicio'] == tarefa_selecionada['Hora_Inicio']) &
+                                                (agendas['Hora_Fim'] == tarefa_selecionada['Hora_Fim']) &
+                                                (agendas['Tarefa'] == tarefa_selecionada['Tarefa']) &
+                                                (agendas['Utilizador'] == utilizador))]
+                            agendas = agendas.append({
                                 "Utilizador": utilizador,
                                 "Dia": novo_dia,
                                 "Hora_Inicio": nova_hora_inicio,
                                 "Hora_Fim": nova_hora_fim,
                                 "Tarefa": nova_tarefa
-                            })
+                            }, ignore_index=True)
                             salvar_agendas(agendas)
                             st.success("Tarefa atualizada com sucesso!")
                     else:
@@ -141,7 +139,11 @@ def gerir_agenda(utilizador):
                 # Usar st.form_submit_button() para remover a tarefa
                 if st.form_submit_button("Remover Tarefa"):
                     agendas = carregar_agendas()
-                    agendas = [t for t in agendas if not (t['Dia'] == tarefa_selecionada['Dia'] and t['Hora_Inicio'] == tarefa_selecionada['Hora_Inicio'] and t['Hora_Fim'] == tarefa_selecionada['Hora_Fim'] and t['Tarefa'] == tarefa_selecionada['Tarefa'] and t['Utilizador'] == utilizador)]
+                    agendas = agendas[~((agendas['Dia'] == tarefa_selecionada['Dia']) &
+                                        (agendas['Hora_Inicio'] == tarefa_selecionada['Hora_Inicio']) &
+                                        (agendas['Hora_Fim'] == tarefa_selecionada['Hora_Fim']) &
+                                        (agendas['Tarefa'] == tarefa_selecionada['Tarefa']) &
+                                        (agendas['Utilizador'] == utilizador))]
                     salvar_agendas(agendas)
                     st.success("Tarefa removida com sucesso!")
 
@@ -153,24 +155,19 @@ def visualizar_agendas():
     if not agendas.empty:
         dias_da_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
         horas = [f"{hora:02d}:00" for hora in range(8, 20)]
-        
         tabela = pd.DataFrame(index=horas, columns=dias_da_semana)
-        tabela.index.name = 'Hora'
-        
+
         for _, row in agendas.iterrows():
+            dia = row["Dia"]
             hora_inicio = row["Hora_Inicio"]
             hora_fim = row["Hora_Fim"]
-            dia = row["Dia"]
             tarefa = f'{row["Utilizador"]}: {row["Tarefa"]}'
-            
-            if hora_inicio in tabela.index:
-                tabela.at[hora_inicio, dia] = tarefa
-            
-            if hora_fim in tabela.index:
-                end_index = tabela.index.get_loc(hora_fim)
-                start_index = tabela.index.get_loc(hora_inicio)
-                for idx in range(start_index, end_index + 1):
-                    tabela.at[tabela.index[idx], dia] = tarefa
+            if dia in tabela.columns:
+                if hora_inicio in tabela.index:
+                    start_index = tabela.index.get_loc(hora_inicio)
+                    end_index = tabela.index.get_loc(hora_fim)
+                    for idx in range(start_index, end_index + 1):
+                        tabela.at[tabela.index[idx], dia] = tarefa
 
         st.table(tabela)
     else:
@@ -191,3 +188,7 @@ def gerir():
             gerir_agenda(utilizador)
     elif opcao == "Visualizar Agendas":
         visualizar_agendas()
+
+# Executa a função principal
+if __name__ == "__main__":
+    gerir()
