@@ -9,7 +9,8 @@ def carregar_agendas():
         with open("agendas.txt", "r") as file:
             for line in file:
                 parts = line.strip().split("|")
-                if len(parts) == 5:
+                # Verifique se a linha tem o número correto de partes
+                if len(parts) == 6:
                     agendas.append({
                         "Utilizador": parts[0],
                         "Cor": parts[1],
@@ -40,14 +41,15 @@ def show():
             dia = row["Dia"]
             tarefa = f'{row["Utilizador"]}: {row["Tarefa"]}'
             
+            # Verificar se o horário de início e fim estão na lista de horas
             if hora_inicio in tabela.index:
                 tabela.at[hora_inicio, dia] = tarefa
             
-            # Caso a tarefa se estenda por várias horas
-            start_index = horas.index(hora_inicio)
-            end_index = horas.index(hora_fim)
-            for idx in range(start_index, end_index):
-                tabela.at[horas[idx], dia] = tarefa
+            if hora_fim in tabela.index:
+                end_index = tabela.index.get_loc(hora_fim)
+                start_index = tabela.index.get_loc(hora_inicio)
+                for idx in range(start_index, end_index + 1):
+                    tabela.at[tabela.index[idx], dia] = tarefa
 
         st.table(tabela)
     else:
