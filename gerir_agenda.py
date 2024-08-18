@@ -84,6 +84,43 @@ def gerir_agenda(utilizador):
         else:
             st.error("Por favor, preencha todos os campos.")
 
+    # Exibir e permitir edição ou remoção de tarefas
+    st.subheader("Gerenciar Tarefas")
+    tarefas = [agenda for agenda in carregar_agendas() if agenda["Utilizador"] == utilizador]
+    if tarefas:
+        tarefa_editar = st.selectbox("Selecione uma tarefa para editar ou remover:", [f"{t['Dia']} {t['Hora']} - {t['Tarefa']}" for t in tarefas])
+        if tarefa_editar:
+            tarefa_selecionada = next(t for t in tarefas if f"{t['Dia']} {t['Hora']} - {t['Tarefa']}" == tarefa_editar)
+            
+            with st.form("Editar Tarefa"):
+                novo_dia = st.selectbox("Novo dia:", ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"], index=["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"].index(tarefa_selecionada["Dia"]))
+                nova_hora = st.selectbox("Novo horário:", [f"{hora:02d}:00" for hora in range(8, 20)], index=[f"{hora:02d}:00" for hora in range(8, 20)].index(tarefa_selecionada["Hora"]))
+                nova_tarefa = st.text_input("Nova descrição da tarefa:", value=tarefa_selecionada["Tarefa"])
+                submitted = st.form_submit_button("Atualizar Tarefa")
+
+                if submitted:
+                    if nova_tarefa:
+                        agendas = carregar_agendas()
+                        agendas = [t for t in agendas if not (t['Dia'] == tarefa_selecionada['Dia'] and t['Hora'] == tarefa_selecionada['Hora'] and t['Tarefa'] == tarefa_selecionada['Tarefa'] and t['Utilizador'] == utilizador)]
+                        agendas.append({
+                            "Utilizador": utilizador,
+                            "Cor": tarefa_selecionada['Cor'],
+                            "Dia": novo_dia,
+                            "Hora": nova_hora,
+                            "Tarefa": nova_tarefa
+                        })
+                        salvar_agendas(agendas)
+                        st.success("Tarefa atualizada com sucesso!")
+                    else:
+                        st.error("Por favor, preencha todos os campos.")
+                
+                st.form_submit_button("Remover Tarefa")
+                if st.button("Remover Tarefa"):
+                    agendas = carregar_agendas()
+                    agendas = [t for t in agendas if not (t['Dia'] == tarefa_selecionada['Dia'] and t['Hora'] == tarefa_selecionada['Hora'] and t['Tarefa'] == tarefa_selecionada['Tarefa'] and t['Utilizador'] == utilizador)]
+                    salvar_agendas(agendas)
+                    st.success("Tarefa removida com sucesso!")
+
 # Função principal para gerenciamento
 def gerir():
     opcao = st.sidebar.selectbox(
