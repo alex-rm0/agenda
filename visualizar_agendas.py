@@ -4,8 +4,20 @@ import os
 
 # Função para carregar agendas existentes
 def carregar_agendas():
-    if os.path.exists("agendas.csv"):
-        return pd.read_csv("agendas.csv", index_col=0)
+    if os.path.exists("agendas.txt"):
+        agendas = []
+        with open("agendas.txt", "r") as file:
+            for line in file:
+                parts = line.strip().split("|")
+                if len(parts) == 5:
+                    agendas.append({
+                        "Utilizador": parts[0],
+                        "Cor": parts[1],
+                        "Dia": parts[2],
+                        "Hora": parts[3],
+                        "Tarefa": parts[4]
+                    })
+        return pd.DataFrame(agendas)
     else:
         return pd.DataFrame(columns=["Utilizador", "Cor", "Dia", "Hora", "Tarefa"])
 
