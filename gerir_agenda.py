@@ -155,7 +155,7 @@ def visualizar_agendas():
 def gerir():
     opcao = st.sidebar.selectbox(
         "Escolha uma opção:",
-        ["Criar Nova Agenda", "Selecionar Agenda Existente", "Visualizar Agendas"]
+        ["Criar Nova Agenda", "Selecionar Agenda", "Visualizar Agendas"]
     )
     
     if opcao == "Criar Nova Agenda":
