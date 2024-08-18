@@ -1,6 +1,22 @@
 import streamlit as st
 import os
 
+# Função para carregar usuários
+def carregar_usuarios():
+    if os.path.exists("users.txt"):
+        usuarios = []
+        with open("users.txt", "r") as file:
+            for line in file:
+                parts = line.strip().split("|")
+                if len(parts) == 2:
+                    usuarios.append({
+                        "Utilizador": parts[0],
+                        "Cor": parts[1]
+                    })
+        return usuarios
+    else:
+        return []
+
 # Função para carregar agendas existentes
 def carregar_agendas():
     if os.path.exists("agendas.txt"):
@@ -8,23 +24,28 @@ def carregar_agendas():
         with open("agendas.txt", "r") as file:
             for line in file:
                 parts = line.strip().split("|")
-                if len(parts) == 5:
+                if len(parts) == 4:
                     agendas.append({
                         "Utilizador": parts[0],
-                        "Cor": parts[1],
-                        "Dia": parts[2],
-                        "Hora": parts[3],
-                        "Tarefa": parts[4]
+                        "Dia": parts[1],
+                        "Hora": parts[2],
+                        "Tarefa": parts[3]
                     })
         return agendas
     else:
         return []
 
+# Função para salvar usuários
+def salvar_usuarios(usuarios):
+    with open("users.txt", "w") as file:
+        for usuario in usuarios:
+            file.write(f"{usuario['Utilizador']}|{usuario['Cor']}\n")
+
 # Função para salvar agendas
 def salvar_agendas(agendas):
     with open("agendas.txt", "w") as file:
         for agenda in agendas:
-            file.write(f"{agenda['Utilizador']}|{agenda['Cor']}|{agenda['Dia']}|{agenda['Hora']}|{agenda['Tarefa']}\n")
+            file.write(f"{agenda['Utilizador']}|{agenda['Dia']}|{agenda['Hora']}|{agenda['Tarefa']}\n")
 
 # Função para criar uma nova agenda
 def criar_agenda():
@@ -33,27 +54,24 @@ def criar_agenda():
     
     if st.button("Criar Agenda"):
         if utilizador and cor:
-            agendas = carregar_agendas()
-            if any(agenda["Utilizador"] == utilizador for agenda in agendas):
+            usuarios = carregar_usuarios()
+            if any(usuario["Utilizador"] == utilizador for usuario in usuarios):
                 st.warning("Este utilizador já tem uma agenda.")
             else:
-                # Adiciona a nova agenda à lista de agendas
-                novas_agendas = agendas + [{
+                # Adiciona o novo usuário à lista de usuários
+                novos_usuarios = usuarios + [{
                     "Utilizador": utilizador,
-                    "Cor": cor,
-                    "Dia": "",
-                    "Hora": "",
-                    "Tarefa": ""
+                    "Cor": cor
                 }]
-                salvar_agendas(novas_agendas)
+                salvar_usuarios(novos_usuarios)
                 st.success(f"Agenda criada para {utilizador} com a cor {cor}.")
         else:
             st.error("Por favor, preencha todos os campos.")
 
 # Função para selecionar uma agenda existente
 def selecionar_agenda():
-    agendas = carregar_agendas()
-    utilizadores = set(agenda["Utilizador"] for agenda in agendas)
+    usuarios = carregar_usuarios()
+    utilizadores = set(usuario["Utilizador"] for usuario in usuarios)
     utilizador = st.selectbox("Selecione sua agenda:", list(utilizadores))
     return utilizador
 
@@ -67,20 +85,15 @@ def gerir_agenda(utilizador):
     if st.button("Adicionar Tarefa"):
         if tarefa:
             agendas = carregar_agendas()
-            cor = next((agenda["Cor"] for agenda in agendas if agenda["Utilizador"] == utilizador), None)
-            if cor:
-                nova_tarefa = {
-                    "Utilizador": utilizador,
-                    "Cor": cor,
-                    "Dia": dia,
-                    "Hora": hora,
-                    "Tarefa": tarefa
-                }
-                agendas.append(nova_tarefa)
-                salvar_agendas(agendas)
-                st.success(f"Tarefa '{tarefa}' adicionada para {dia} às {hora}.")
-            else:
-                st.error("Cor da agenda não encontrada.")
+            nova_tarefa = {
+                "Utilizador": utilizador,
+                "Dia": dia,
+                "Hora": hora,
+                "Tarefa": tarefa
+            }
+            agendas.append(nova_tarefa)
+            salvar_agendas(agendas)
+            st.success(f"Tarefa '{tarefa}' adicionada para {dia} às {hora}.")
         else:
             st.error("Por favor, preencha todos os campos.")
 
@@ -104,7 +117,6 @@ def gerir_agenda(utilizador):
                         agendas = [t for t in agendas if not (t['Dia'] == tarefa_selecionada['Dia'] and t['Hora'] == tarefa_selecionada['Hora'] and t['Tarefa'] == tarefa_selecionada['Tarefa'] and t['Utilizador'] == utilizador)]
                         agendas.append({
                             "Utilizador": utilizador,
-                            "Cor": tarefa_selecionada['Cor'],
                             "Dia": novo_dia,
                             "Hora": nova_hora,
                             "Tarefa": nova_tarefa
@@ -114,7 +126,6 @@ def gerir_agenda(utilizador):
                     else:
                         st.error("Por favor, preencha todos os campos.")
                 
-                st.form_submit_button("Remover Tarefa")
                 if st.button("Remover Tarefa"):
                     agendas = carregar_agendas()
                     agendas = [t for t in agendas if not (t['Dia'] == tarefa_selecionada['Dia'] and t['Hora'] == tarefa_selecionada['Hora'] and t['Tarefa'] == tarefa_selecionada['Tarefa'] and t['Utilizador'] == utilizador)]
