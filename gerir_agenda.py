@@ -37,6 +37,15 @@ def criar_agenda():
             if any(agenda["Utilizador"] == utilizador for agenda in agendas):
                 st.warning("Este utilizador já tem uma agenda.")
             else:
+                # Adiciona a nova agenda à lista de agendas
+                novas_agendas = agendas + [{
+                    "Utilizador": utilizador,
+                    "Cor": cor,
+                    "Dia": "",
+                    "Hora": "",
+                    "Tarefa": ""
+                }]
+                salvar_agendas(novas_agendas)
                 st.success(f"Agenda criada para {utilizador} com a cor {cor}.")
         else:
             st.error("Por favor, preencha todos os campos.")
