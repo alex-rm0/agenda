@@ -160,7 +160,7 @@ def gerir():
     
     if opcao == "Criar Nova Agenda":
         criar_agenda()
-    elif opcao == "Selecionar Agenda Existente":
+    elif opcao == "Selecionar Agenda":
         utilizador = selecionar_agenda()
         if utilizador:
             gerir_agenda(utilizador)
