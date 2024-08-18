@@ -12,8 +12,6 @@ def main():
         ["Menu Principal", "Gerir Agenda", "Visualizar Agendas"]
     )
     
-    st.write("Selecione os blocos de horários em que deseja adicionar tarefas:")
-
     if menu == "Menu Principal":
         st.subheader("Bem-vindo ao Calendário d'Os Cinco")
     elif menu == "Gerir Agenda":
