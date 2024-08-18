@@ -13,7 +13,7 @@ def main():
     
     if menu == "Menu Principal":
         st.subheader("Bem-vindo ao Calendário d'Os Cinco")
-    elif menu == "Gerir Agenda":
+    elif menu == "Agendas":
         gerir_agenda.gerir()
 
 if __name__ == "__main__":
