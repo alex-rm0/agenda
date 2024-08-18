@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+from datetime import datetime, timedelta
 
 # Função para carregar usuários
 def carregar_usuarios():
@@ -125,10 +126,25 @@ def gerir_agenda(utilizador):
                 salvar_agendas(agendas)
                 st.success("Tarefa removida com sucesso!")
 
+# Função para obter a data do início da semana
+def inicio_da_semana(data, semana):
+    start_date = data - timedelta(days=data.weekday())  # Segunda-feira da semana atual
+    start_date += timedelta(weeks=semana - 1)  # Ajusta para a semana selecionada
+    return start_date
+
 # Função para visualizar todas as agendas
 def visualizar_agendas():
     st.subheader("Visualizar Todas as Agendas")
-    
+
+    semanas = [1, 2, 3, 4]
+    semana_selecionada = st.selectbox("Selecione a semana:", semanas)
+
+    data_atual = datetime.now()
+    inicio_semana = inicio_da_semana(data_atual, semana_selecionada)
+    fim_semana = inicio_semana + timedelta(days=6)
+
+    st.write(f"Visualizando a semana de {inicio_semana.strftime('%d/%m/%Y')} a {fim_semana.strftime('%d/%m/%Y')}")
+
     agendas = carregar_agendas()
     usuarios = carregar_usuarios()
     
@@ -146,17 +162,20 @@ def visualizar_agendas():
             hora_fim = row["Hora_Fim"]
             tarefa = f'{row["Utilizador"]}: {row["Tarefa"]}'
             cor = cor_usuarios.get(row["Utilizador"], "#FFFFFF")  # Pega a cor do utilizador ou branco como padrão
-            if dia in tabela.columns:
-                if hora_inicio in tabela.index:
-                    start_index = tabela.index.get_loc(hora_inicio)
-                    end_index = tabela.index.get_loc(hora_fim)
-                    for idx in range(start_index, end_index + 1):
-                        # Se a célula já contém uma tarefa, adiciona a nova tarefa com uma quebra de linha
-                        existing_content = tabela.at[tabela.index[idx], dia]
-                        if pd.notna(existing_content):
-                            tabela.at[tabela.index[idx], dia] = existing_content + f"<br><span style='color:{cor};'>{tarefa}</span>"
-                        else:
-                            tabela.at[tabela.index[idx], dia] = f"<span style='color:{cor};'>{tarefa}</span>"
+            
+            data_tarefa = datetime.strptime(f'{dia} {hora_inicio}', '%A %H:%M')
+            if inicio_semana <= data_tarefa <= fim_semana:
+                if dia in tabela.columns:
+                    if hora_inicio in tabela.index:
+                        start_index = tabela.index.get_loc(hora_inicio)
+                        end_index = tabela.index.get_loc(hora_fim)
+                        for idx in range(start_index, end_index + 1):
+                            # Se a célula já contém uma tarefa, adiciona a nova tarefa com uma quebra de linha
+                            existing_content = tabela.at[tabela.index[idx], dia]
+                            if pd.notna(existing_content):
+                                tabela.at[tabela.index[idx], dia] = existing_content + f"<br><span style='color:{cor};'>{tarefa}</span>"
+                            else:
+                                tabela.at[tabela.index[idx], dia] = f"<span style='color:{cor};'>{tarefa}</span>"
 
         # Exibir tabela com estilo
         st.markdown(tabela.to_html(escape=False, render_links=True), unsafe_allow_html=True)
@@ -178,3 +197,4 @@ def gerir():
             gerir_agenda(utilizador)
     elif opcao == "Visualizar Agendas":
         visualizar_agendas()
+
