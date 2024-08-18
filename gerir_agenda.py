@@ -24,6 +24,7 @@ def carregar_agendas():
         agendas = []
         with open("agendas.txt", "r") as file:
             for line in file:
+                parts = line.strip().split("|")
                 if len(parts) == 5:
                     agendas.append({
                         "Utilizador": parts[0],
@@ -78,7 +79,7 @@ def selecionar_agenda():
 
 # Função para gerenciar a agenda selecionada
 def gerir_agenda(utilizador):
-    st.subheader(f"Gerindo a agenda de {utilizador}")
+    st.subheader(f"Gerenciando a agenda de {utilizador}")
     dia = st.selectbox("Selecione o dia da semana:", ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"])
     hora_inicio = st.selectbox("Selecione a hora de início:", [f"{hora:02d}:00" for hora in range(8, 20)])
     hora_fim = st.selectbox("Selecione a hora de fim:", [f"{hora:02d}:00" for hora in range(8, 20)])
@@ -107,9 +108,6 @@ def gerir_agenda(utilizador):
     # Exibir e permitir remoção de tarefas
     st.subheader("Remover Tarefas")
     agendas_df = carregar_agendas()
-
-    st.write("Colunas disponíveis:", agendas_df.columns)
-
     tarefas = agendas_df[agendas_df["Utilizador"] == utilizador].to_dict('records')
 
     if tarefas:
@@ -132,51 +130,24 @@ def visualizar_agendas():
     st.subheader("Visualizar Todas as Agendas")
     
     agendas = carregar_agendas()
-    usuarios = carregar_usuarios()
-    
-    # Criar um dicionário para mapear utilizadores para suas respectivas cores
-    cor_usuarios = {usuario['Utilizador']: usuario['Cor'] for usuario in usuarios}
-    
     if not agendas.empty:
         dias_da_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
         horas = [f"{hora:02d}:00" for hora in range(8, 20)]
-        
-        # Criar tabelas vazias
-        tabela_geral = pd.DataFrame(index=horas, columns=dias_da_semana)
-        tabela_usuario = pd.DataFrame(index=horas, columns=dias_da_semana)
-
-        # Obter o utilizador selecionado
-        utilizador_selecionado = selecionar_agenda()
+        tabela = pd.DataFrame(index=horas, columns=dias_da_semana)
 
         for _, row in agendas.iterrows():
             dia = row["Dia"]
             hora_inicio = row["Hora_Inicio"]
             hora_fim = row["Hora_Fim"]
             tarefa = f'{row["Utilizador"]}: {row["Tarefa"]}'
-            cor = cor_usuarios.get(row["Utilizador"], "#FFFFFF")
-            
-            # Preencher tabela geral
-            if dia in tabela_geral.columns:
-                if hora_inicio in tabela_geral.index:
-                    start_index = tabela_geral.index.get_loc(hora_inicio)
-                    end_index = tabela_geral.index.get_loc(hora_fim)
+            if dia in tabela.columns:
+                if hora_inicio in tabela.index:
+                    start_index = tabela.index.get_loc(hora_inicio)
+                    end_index = tabela.index.get_loc(hora_fim)
                     for idx in range(start_index, end_index + 1):
-                        tabela_geral.at[tabela_geral.index[idx], dia] = f'<span style="color:{cor};">{tarefa}</span>'
-            
-            # Preencher tabela do utilizador selecionado
-            if row["Utilizador"] == utilizador_selecionado and dia in tabela_usuario.columns:
-                if hora_inicio in tabela_usuario.index:
-                    start_index = tabela_usuario.index.get_loc(hora_inicio)
-                    end_index = tabela_usuario.index.get_loc(hora_fim)
-                    for idx in range(start_index, end_index + 1):
-                        tabela_usuario.at[tabela_usuario.index[idx], dia] = f'<span style="color:{cor};">{tarefa}</span>'
-        
-        # Exibir tabelas com estilo
-        st.markdown(f"**Agenda de {utilizador_selecionado}**")
-        st.markdown(tabela_usuario.to_html(escape=False), unsafe_allow_html=True)
-        
-        st.markdown("**Todas as Agendas Sobrepostas**")
-        st.markdown(tabela_geral.to_html(escape=False), unsafe_allow_html=True)
+                        tabela.at[tabela.index[idx], dia] = tarefa
+
+        st.table(tabela)
     else:
         st.info("Nenhuma agenda foi criada ainda.")
 
@@ -184,7 +155,7 @@ def visualizar_agendas():
 def gerir():
     opcao = st.sidebar.selectbox(
         "Escolha uma opção:",
-        ["Criar Nova Agenda", "Selecionar Agenda", "Visualizar Agendas"]
+        ["Criar Nova Agenda", "Selecionar Agenda Existente", "Visualizar Agendas"]
     )
     
     if opcao == "Criar Nova Agenda":
@@ -195,5 +166,3 @@ def gerir():
             gerir_agenda(utilizador)
     elif opcao == "Visualizar Agendas":
         visualizar_agendas()
-
-# Executa
