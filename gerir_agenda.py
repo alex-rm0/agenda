@@ -23,7 +23,7 @@ def carregar_agendas():
     if os.path.exists("agendas.txt"):
         agendas = []
         with open("agendas.txt", "r") as file:
-            for line in file.strip().split("|"):
+            for line in file:
                 if len(parts) == 5:
                     agendas.append({
                         "Utilizador": parts[0],
