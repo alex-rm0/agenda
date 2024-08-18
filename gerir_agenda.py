@@ -37,6 +37,12 @@ def carregar_agendas():
     else:
         return pd.DataFrame(columns=["Utilizador", "Dia", "Hora_Inicio", "Hora_Fim", "Tarefa"])
 
+# Função para salvar usuários
+def salvar_usuarios(usuarios):
+    with open("users.txt", "w") as file:
+        for usuario in usuarios:
+            file.write(f"{usuario['Utilizador']}|{usuario['Cor']}\n")
+
 # Função para salvar agendas
 def salvar_agendas(agendas):
     with open("agendas.txt", "w") as file:
@@ -189,6 +195,3 @@ def gerir():
     elif opcao == "Visualizar Agendas":
         visualizar_agendas()
 
-# Executa a função principal
-if __name__ == "__main__":
-    gerir()
